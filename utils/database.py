@@ -41,3 +41,21 @@ def set_welcome(chat_id: int, text: str):
 def get_welcome(chat_id: int) -> str:
     data = welcome_col.find_one({"chat_id": chat_id})
     return data["text"] if data else None
+
+# Koleksi auto filter
+filter_col = db['filters']
+
+def add_filter(chat_id: int, keyword: str, reply: str):
+    filter_col.update_one(
+        {"chat_id": chat_id, "keyword": keyword},
+        {"$set": {"reply": reply}},
+        upsert=True
+    )
+
+def get_filter_reply(chat_id: int, keyword: str) -> str:
+    data = filter_col.find_one({"chat_id": chat_id, "keyword": keyword})
+    return data["reply"] if data else None
+
+def remove_filter(chat_id: int, keyword: str) -> bool:
+    result = filter_col.delete_one({"chat_id": chat_id, "keyword": keyword})
+    return result.deleted_count > 0
