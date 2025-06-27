@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
-
+import os
+LOG_GROUP_ID = int(os.getenv("LOG_GROUP_ID", "0"))
 # Muat isi file .env
 load_dotenv()
 
@@ -15,7 +16,6 @@ MONGO_URI = os.getenv("MONGO_URI")
 # Identitas bot & admin
 OWNER_USERNAME = os.getenv("OWNER_USERNAME")     # tanpa '@'
 SUPPORT_GROUP = os.getenv("SUPPORT_GROUP")       # tanpa '@'
-LOG_GROUP_ID = int(os.getenv("LOG_GROUP_ID"))    # grup log (pakai -100...)
 
 # Validasi wajib
 REQUIRED_VARS = ["API_ID", "API_HASH", "BOT_TOKEN", "MONGO_URI", "OWNER_USERNAME", "SUPPORT_GROUP", "LOG_GROUP_ID"]
