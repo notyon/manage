@@ -1,6 +1,5 @@
-
 from pyrogram import filters
-from pyrogram.types import Message, InputMediaPhoto
+from pyrogram.types import Message
 import random
 
 ANOMALI_PICTS = [
