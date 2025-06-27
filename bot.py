@@ -1,16 +1,39 @@
 from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from config import API_ID, API_HASH, BOT_TOKEN
+from config import API_ID, API_HASH, BOT_TOKEN, SUPPORT_GROUP, OWNER_USERNAME
 
-app = Client("test_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Import plugin secara langsung
+from plugins import (
+    welcome, force_check, auto_reply,
+    zodiac, admin, config_force, cekanomali
+)
 
-@app.on_message(filters.private)
-async def handle_private(client, message):
-    await message.reply("✅ Bot aktif dan merespon kamu!")
+app = Client("manage_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-@app.on_message(filters.command("test") & filters.group)
-async def handle_test(client, message):
-    await message.reply("✅ Bot juga aktif di grup ini!")
+# Register semua plugin
+welcome.register(app)
+force_check.register(app)
+auto_reply.register(app)
+zodiac.register(app)
+admin.register(app)
+config_force.register(app)
+cekanomali.register(app)
 
-print("🤖 Bot minimal test aktif...")
+@app.on_message(filters.command("start") & filters.private)
+async def start_cmd(client, message):
+    text = (
+        "👋 Selamat datang, saya adalah bot manage!\n\n"
+        "Saya membantu mengatur grup, menyaring pesan, membalas otomatis, dan lainnya."
+    )
+    buttons = [
+        [InlineKeyboardButton("Group Support", url=f"https://t.me/{SUPPORT_GROUP}")],
+        [InlineKeyboardButton("Owner", url=f"https://t.me/{OWNER_USERNAME}")],
+    ]
+    await message.reply(
+        text,
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
+
+print("🤖 Bot is running...")
 app.run()
