@@ -1,30 +1,38 @@
-
 from pyrogram import filters
 from pyrogram.types import Message
 import datetime
 
-ZODIAK = {
-    (1, 20): "Aquarius", (2, 19): "Pisces", (3, 21): "Aries", (4, 20): "Taurus",
-    (5, 21): "Gemini", (6, 21): "Cancer", (7, 23): "Leo", (8, 23): "Virgo",
-    (9, 23): "Libra", (10, 23): "Scorpio", (11, 23): "Sagittarius", (12, 22): "Capricorn"
+zodiac_data = {
+    "Capricorn": ((12, 22), (1, 19)),
+    "Aquarius": ((1, 20), (2, 18)),
+    "Pisces": ((2, 19), (3, 20)),
+    "Aries": ((3, 21), (4, 19)),
+    "Taurus": ((4, 20), (5, 20)),
+    "Gemini": ((5, 21), (6, 20)),
+    "Cancer": ((6, 21), (7, 22)),
+    "Leo": ((7, 23), (8, 22)),
+    "Virgo": ((8, 23), (9, 22)),
+    "Libra": ((9, 23), (10, 22)),
+    "Scorpio": ((10, 23), (11, 21)),
+    "Sagittarius": ((11, 22), (12, 21)),
 }
 
-def cari_zodiak(tgl, bln):
-    for (batas_bln, batas_tgl), nama in reversed(ZODIAK.items()):
-        if (bln, tgl) >= (batas_bln, batas_tgl):
-            return nama
-    return "Capricorn"
+def get_zodiac(month, day):
+    for sign, ((start_month, start_day), (end_month, end_day)) in zodiac_data.items():
+        if (month == start_month and day >= start_day) or (month == end_month and day <= end_day):
+            return sign
+    return "Tidak diketahui"
 
 def register(app):
     @app.on_message(filters.command("zodiak") & (filters.group | filters.private))
-    async def zodiak_handler(client, message: Message):
-        if len(message.command) < 2:
-            return await message.reply("🔮 Gunakan format: /zodiak <dd-mm>")
-        tanggal = message.text.split(None, 1)[1].replace("/", "-").replace(".", "-")
+    async def zodiac_cmd(client, message: Message):
+        args = message.text.split()
+        if len(args) < 2:
+            return await message.reply("Contoh: /zodiak 12-08")
+        
         try:
-            tgl, bln = map(int, tanggal.split("-"))
-            datetime.date(2000, bln, tgl)  # validasi
-            hasil = cari_zodiak(tgl, bln)
-            await message.reply(f"🔮 Zodiak kamu: {hasil}")
+            day, month = map(int, args[1].split("-"))
+            sign = get_zodiac(month, day)
+            await message.reply(f"Zodiak kamu: ♈ {sign}")
         except:
-            await message.reply("❌ Format salah. Contoh: /zodiak 21-03")
+            await message.reply("Format salah. Gunakan: /zodiak 12-08")
