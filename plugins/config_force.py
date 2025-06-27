@@ -1,45 +1,79 @@
 from pyrogram import filters
-from pyrogram.types import Message
-from config import OWNER_USERNAME
-from utils.database import set_force_channel, get_force_channel
-from pyrogram.enums import ChatMemberStatus
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ChatPermissions
+from pyrogram.errors import UserNotParticipant
+from utils.database import get_force_channel, is_user_muted, mute_user, unmute_user
+from utils.log import send_log
 
 def register(app):
-
-    @app.on_message(filters.private & filters.command("setforce"))
-    async def set_force(client, message: Message):
+    @app.on_message(filters.group & ~filters.service)
+    async def check_force_sub(client, message):
         user = message.from_user
-        args = message.text.split()
+        if not user:
+            return  # abaikan anonymous admin / channel
 
-        if len(args) != 3:
-            return await message.reply("❌ Format: /setforce <chat_id_grup> <channel_id>")
-
-        try:
-            chat_id = int(args[1])
-            channel_id = int(args[2])
-        except:
-            return await message.reply("❌ Format ID salah. Harus angka.")
-
-        # Cek apakah user adalah OWNER atau admin grup tsb
-        is_owner = user.username == OWNER_USERNAME
-        try:
-            member = await client.get_chat_member(chat_id, user.id)
-            is_admin = member.status in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]
-        except:
-            is_admin = False
-
-        if not (is_owner or is_admin):
-            return await message.reply("❌ Hanya admin grup atau owner bot yang bisa set force join.")
-
-        set_force_channel(chat_id, channel_id)
-        await message.reply(f"✅ Channel wajib untuk grup `{chat_id}` diset ke `{channel_id}`.")
-
-    @app.on_message(filters.command("forceid") & filters.group)
-    async def show_force_id(client, message: Message):
         chat_id = message.chat.id
-        channel_id = get_force_channel(chat_id)
+        user_id = user.id
 
-        if channel_id:
-            await message.reply(f"📌 Channel wajib join ID: `{channel_id}`")
-        else:
-            await message.reply("ℹ️ Belum ada channel wajib yang diset.")
+        # Admin dan creator tetap boleh kirim
+        member = await client.get_chat_member(chat_id, user_id)
+        if member.status in ["administrator", "creator"]:
+            return
+
+        # Ambil ID channel wajib dari database
+        channel_id = get_force_channel(chat_id)
+        if not channel_id:
+            return  # belum diset / tidak wajib join
+
+        try:
+            # Cek apakah user sudah join
+            await client.get_chat_member(channel_id, user_id)
+
+            # Jika sebelumnya dimute, unmute otomatis
+            if await is_user_muted(chat_id, user_id):
+                await client.unrestrict_chat_member(chat_id, user_id)
+                await unmute_user(chat_id, user_id)
+
+        except UserNotParticipant:
+            # Mute user karena belum join
+            await client.restrict_chat_member(
+                chat_id,
+                user_id,
+                permissions=ChatPermissions(can_send_messages=False)
+            )
+            await mute_user(chat_id, user_id)
+
+            try:
+                await message.delete()
+            except:
+                pass
+
+            # Kirim pesan tombol
+            buttons = InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔗 Join Channel", url=f"https://t.me/c/{str(channel_id)[4:]}")],
+                [InlineKeyboardButton("✅ Saya Sudah Join - Unmute", callback_data=f"unmute:{chat_id}")]
+            ])
+
+            await message.reply(
+                "⚠️ Kamu harus bergabung ke channel terlebih dahulu untuk bisa mengirim pesan.",
+                reply_markup=buttons
+            )
+            await send_log(f"🔒 User @{user.username or user_id} dimute karena belum join channel.")
+
+    @app.on_callback_query(filters.regex(r"^unmute:(-?\d+)$"))
+    async def handle_unmute_button(client, callback_query):
+        chat_id = int(callback_query.data.split(":")[1])
+        user_id = callback_query.from_user.id
+
+        channel_id = get_force_channel(chat_id)
+        if not channel_id:
+            return await callback_query.answer("⚠️ Konfigurasi force join belum diset!", show_alert=True)
+
+        try:
+            await client.get_chat_member(channel_id, user_id)
+            await client.unrestrict_chat_member(chat_id, user_id)
+            await unmute_user(chat_id, user_id)
+            await callback_query.answer("✅ Kamu sudah di-unmute!", show_alert=True)
+            await send_log(f"🔓 User @{callback_query.from_user.username or user_id} di-unmute (join channel).")
+
+        except UserNotParticipant:
+            await callback_query.answer("❌ Kamu belum join channel!", show_alert=True)
