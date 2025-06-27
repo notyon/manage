@@ -1,7 +1,9 @@
 from pyrogram import filters
 from pyrogram.types import Message
 from pyrogram.enums import ChatMemberStatus
+from utils.log import send_log
 
+    await send_log("🔒 User dimute karena belum join channel.", client)
 def register(app):
 
     async def is_admin(client, chat_id, user_id):
