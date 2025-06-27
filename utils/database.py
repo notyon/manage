@@ -59,3 +59,17 @@ def get_filter_reply(chat_id: int, keyword: str) -> str:
 def remove_filter(chat_id: int, keyword: str) -> bool:
     result = filter_col.delete_one({"chat_id": chat_id, "keyword": keyword})
     return result.deleted_count > 0
+
+# Koleksi force subs
+force_col = db['force_join']
+
+def set_force_channel(chat_id: int, channel_id: int):
+    force_col.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"channel_id": channel_id}},
+        upsert=True
+    )
+
+def get_force_channel(chat_id: int) -> int:
+    data = force_col.find_one({"chat_id": chat_id})
+    return data["channel_id"] if data else None
