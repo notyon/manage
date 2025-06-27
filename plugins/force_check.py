@@ -21,8 +21,8 @@ def register(app):
         try:
             # Cek apakah user sudah join channel wajib
             channel_id = get_force_channel(chat_id)
-if not channel_id:
-    return  # tidak wajib join jika belum diset
+    if not channel_id:
+        return  # tidak wajib join jika belum diset
 
     await client.get_chat_member(channel_id, user_id)
             # Jika user sebelumnya dimute, unmute otomatis
