@@ -22,10 +22,7 @@ cekanomali.register(app)
 async def handler(_, message):
     if message.text == "/start":
         text = (
-            "👋 Selamat datang, saya adalah bot manage!
-
-"
-            "Gunakan saya untuk membantu mengatur grup, cek zodiak, auto-reply, dan lainnya."
+            "👋 Selamat datang, saya adalah bot manage! Gunakan saya untuk membantu mengatur grup, cek zodiak, auto-reply, dan lainnya."
         )
         buttons = [
             [{"text": "Group Support", "url": f"https://t.me/{SUPPORT_GROUP}"}],
