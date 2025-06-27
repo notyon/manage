@@ -1,12 +1,12 @@
-from pyrogram import Client
-from config import API_ID, API_HASH, BOT_TOKEN
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardMarkup
+
+from config import API_ID, API_HASH, BOT_TOKEN, SUPPORT_GROUP, OWNER_USERNAME
 from plugins import (
     welcome, force_check, auto_reply, zodiac,
     admin, config_force, cekanomali
 )
-
 from utils.log import send_log
-from config import SUPPORT_GROUP, OWNER_USERNAME
 
 app = Client("manage_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
