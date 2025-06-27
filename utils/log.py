@@ -1,10 +1,8 @@
-
 from config import LOG_GROUP_ID
-from pyrogram.types import Message
 
-async def send_log(client, text: str):
-    if LOG_GROUP_ID:
+async def send_log(text: str, client=None):
+    if LOG_GROUP_ID and client:
         try:
             await client.send_message(LOG_GROUP_ID, text)
-        except:
-            pass
+        except Exception as e:
+            print(f"[LOG ERROR] Gagal kirim log: {e}")
