@@ -19,8 +19,6 @@ def register(app):
                 {"$set": {"channel_id": f"@{channel_username}", "channel_username": channel_username}},
                 upsert=True
             )
-            await message.reply(f"✅ Force subscribe berhasil diset:
-Chat ID: `{chat_id}`
-Channel: `{channel_username}`")
+            await message.reply(f"✅ Force subscribe berhasil diset: Chat ID: `{chat_id}` Channel: `{channel_username}`")
         except Exception as e:
             await message.reply(f"❌ Gagal menyimpan: {e}")
