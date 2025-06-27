@@ -3,7 +3,6 @@ from pyrogram.types import Message
 from pyrogram.enums import ChatMemberStatus
 from utils.log import send_log
 
-    await send_log("🔒 User dimute karena belum join channel.", client)
 def register(app):
 
     async def is_admin(client, chat_id, user_id):
@@ -18,6 +17,7 @@ def register(app):
         user_id = message.reply_to_message.from_user.id
         await client.restrict_chat_member(message.chat.id, user_id, permissions={"can_send_messages": False})
         await message.reply("🔇 User berhasil dimute.")
+        await send_log("🔒 User dimute karena belum join channel.", client)
 
     @app.on_message(filters.command("unmute") & filters.reply & filters.group)
     async def unmute_user(client, message: Message):
