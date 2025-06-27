@@ -2,7 +2,7 @@ from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import UserNotParticipant
 
-from config import FORCE_JOIN_CHANNEL
+from utils.database import get_force_channel
 from utils.database import is_user_muted, mute_user, unmute_user
 from utils.log import send_log
 
@@ -20,7 +20,11 @@ def register(app):
 
         try:
             # Cek apakah user sudah join channel wajib
-            await client.get_chat_member(FORCE_JOIN_CHANNEL, user_id)
+            channel_id = get_force_channel(chat_id)
+if not channel_id:
+    return  # tidak wajib join jika belum diset
+
+    await client.get_chat_member(channel_id, user_id)
             # Jika user sebelumnya dimute, unmute otomatis
             if await is_user_muted(chat_id, user_id):
                 await client.unrestrict_chat_member(chat_id, user_id)
